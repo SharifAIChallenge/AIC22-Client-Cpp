@@ -1,0 +1,1 @@
+add_library(AI ai.h ai.cpp)
