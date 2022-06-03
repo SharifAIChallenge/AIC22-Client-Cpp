@@ -1,4 +1,4 @@
-# Install Dependencies:
+# Install GRPC:
 
 - Install Prerequisites
 
@@ -56,6 +56,18 @@ cmake ../..
 make
 ```
 
+# Install yaml-cpp:
+```
+# first cd to the directory you want to install yaml-cpp (for example ~)
+cd ~
+git clone https://github.com/jbeder/yaml-cpp.git --branch yaml-cpp-0.6.0 && \
+cd yaml-cpp && \
+mkdir build && \
+cd build && \
+cmake .. && \
+sudo make install
+```
+
 # Compile:
 
 - in the project directory
@@ -65,5 +77,5 @@ make
 
 # Run:
 
-- execute the server and client in the ./build folder
+- execute "main" in the ./build folder (with proper command line arguments)
 

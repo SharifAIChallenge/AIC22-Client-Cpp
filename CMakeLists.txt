@@ -19,3 +19,8 @@ add_subdirectory(client)
 
 add_executable(main main.cpp)
 target_link_libraries(main AI Client)
+
+# add yaml-cpp as dependency
+find_package(yaml-cpp REQUIRED)
+include_directories(${YAML_CPP_INCLUDE_DIRS})
+target_link_libraries(main ${YAML_CPP_LIBRARIES})
