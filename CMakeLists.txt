@@ -12,6 +12,7 @@ else()
 endif()
 
 include_directories(${CMAKE_BINARY_DIR}/proto) # so that every code can use the grpc generated files
+include_directories(${CMAKE_SOURCE_DIR})
 
 add_subdirectory(proto)
 add_subdirectory(ai)

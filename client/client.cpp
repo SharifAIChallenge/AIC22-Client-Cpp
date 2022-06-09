@@ -6,6 +6,7 @@
 #include "exceptions.h"
 #include "hide_and_seek.grpc.pb.h"
 #include "../ai/ai.h"
+#include "client.h"
 
 
 namespace Client {
@@ -23,10 +24,10 @@ namespace Client {
             throw Exceptions::RpcFailedException((status).error_code(), (status).error_message());
     }
 
-    class Client {
+    class ClientImpl: Client {
     public:
-        explicit Client(const std::string &token, const std::string &address)
-                : token(token) {
+        explicit ClientImpl(const std::string &token, const std::string &address)
+                : Client(), token(token) {
             try {
                 channel = grpc::CreateChannel(address, grpc::InsecureChannelCredentials());
                 stub_ = GameHandler::NewStub(channel);
@@ -35,7 +36,7 @@ namespace Client {
             }
         }
 
-        void handle_client() {
+        void handle_client() const {
             WatchCommand request;
             ClientContext context;
             GameView gameView;
@@ -48,7 +49,6 @@ namespace Client {
                 if (first_turn) {
                     perform_initialize(gameView);
                 } else if (gameView.status() == GameStatus::ONGOING) {
-                    perform_send_message(gameView);
                     perform_move(gameView);
                 } else if (gameView.status() == GameStatus::FINISHED) {
                     break;
@@ -60,7 +60,7 @@ namespace Client {
         }
 
     private:
-        void DeclareReadiness(const int start_node_id) {
+        void DeclareReadiness(const int start_node_id) const {
             DeclareReadinessCommand request;
             ClientContext context;
             ::google::protobuf::Empty reply;
@@ -70,46 +70,40 @@ namespace Client {
             throw_if_error(status);
         }
 
-        void SendMessage(const ChatCommand &chatCommand) {
+        void SendMessage(const ChatCommand &chatCommand) const {
             ClientContext context;
             ::google::protobuf::Empty reply;
             Status status = stub_->SendMessage(&context, chatCommand, &reply);
             throw_if_error(status);
         }
 
-        void Move(const MoveCommand &moveCommand) {
-            ClientContext context;
-            ::google::protobuf::Empty reply;
-            Status status = stub_->Move(&context, moveCommand, &reply);
-            throw_if_error(status);
-        }
-
-        void perform_initialize(const GameView &gameView) {
-            const auto &viewer = gameView.viewer();
-            int start_node_id;
-            if (viewer.type() == AgentType::THIEF) {
-                start_node_id = AI::thief_move_ai(gameView);
-            } else {
-                start_node_id = 3; // todo dummy
-            }
-            DeclareReadiness(start_node_id);
-        }
-
-        void perform_send_message(const GameView &gameView) {
-            const auto &viewer = gameView.viewer();
-            std::string message;
-            if (viewer.type() == AgentType::THIEF) {
-                message = AI::thief_chat_ai(gameView);
-            } else {
-                message = AI::police_chat_ai(gameView);
-            }
+        void SendMessage(const std::string& message) const override {
             ChatCommand chatCommand;
             chatCommand.set_token(token);
             chatCommand.set_text(message);
             SendMessage(chatCommand);
         }
 
-        void perform_move(const GameView &gameView) {
+        void Move(const MoveCommand &moveCommand) const {
+            ClientContext context;
+            ::google::protobuf::Empty reply;
+            Status status = stub_->Move(&context, moveCommand, &reply);
+            throw_if_error(status);
+        }
+
+        void perform_initialize(const GameView &gameView) const {
+            const auto &viewer = gameView.viewer();
+            int start_node_id;
+            if (viewer.type() == AgentType::THIEF) {
+                start_node_id = AI::get_thief_starting_node(gameView);
+            } else {
+                start_node_id = 3; // todo dummy
+            }
+            DeclareReadiness(start_node_id);
+            AI::initialize(gameView, Phone(this));
+        }
+
+        void perform_move(const GameView &gameView) const {
             const auto &viewer = gameView.viewer();
             int to_node_id;
             if (viewer.type() == AgentType::THIEF) {
@@ -130,7 +124,7 @@ namespace Client {
 
 
     void handle_client(const std::string &token, const std::string &address) {
-        Client client(token, address);
+        ClientImpl client(token, address);
         client.handle_client();
     }
 }
