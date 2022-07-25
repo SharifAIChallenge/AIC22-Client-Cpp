@@ -20,8 +20,10 @@ namespace Client {
     using namespace ir::sharif::aic::hideandseek::api::grpc;
 
     void throw_if_error(const Status &status) {
-        if (!(status).ok())
-            throw Exceptions::RpcFailedException((status).error_code(), (status).error_message());
+        if (!(status).ok()) {
+//            throw Exceptions::RpcFailedException((status).error_code(), (status).error_message());
+            std::cout << "Error: " << status.error_message() << std::endl;
+        }
     }
 
     class ClientImpl: Client {
@@ -45,14 +47,23 @@ namespace Client {
 
             std::unique_ptr<ClientReader<GameView>> reader(stub_->Watch(&context, request));
             bool first_turn = true;
+            int my_turn;
             while (reader->Read(&gameView)) {
                 if (first_turn) {
                     perform_initialize(gameView);
+                    my_turn = gameView.turn().turnnumber();
                 } else if (gameView.status() == GameStatus::ONGOING) {
+                    if(my_turn == gameView.turn().turnnumber())
+                        continue;
+                    bool both_theif  = gameView.turn().turntype() == TurnType::THIEF_TURN && gameView.viewer().type() == AgentType::THIEF;
+                    bool both_police = gameView.turn().turntype() == TurnType::POLICE_TURN && gameView.viewer().type() == AgentType::POLICE;
+                    if(!both_police && !both_theif)
+                        continue;
                     perform_move(gameView);
+                    my_turn = gameView.turn().turnnumber();
                 } else if (gameView.status() == GameStatus::FINISHED) {
                     break;
-                }
+                } // todo: alive condition...
                 first_turn = false;
             }
             Status status = reader->Finish();

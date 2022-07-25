@@ -15,8 +15,8 @@ include_directories(${CMAKE_BINARY_DIR}/proto) # so that every code can use the 
 include_directories(${CMAKE_SOURCE_DIR})
 
 add_subdirectory(proto)
-add_subdirectory(ai)
 add_subdirectory(client)
+add_subdirectory(ai)
 
 add_executable(main main.cpp)
 target_link_libraries(main AI Client)

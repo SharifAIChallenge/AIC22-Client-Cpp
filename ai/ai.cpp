@@ -17,12 +17,14 @@ namespace AI {
 
     int thief_move_ai(const GameView &gameView) {
         // we can send message if we like
+        cout << "I am moving and then sending a message as a theif" << endl;
         my_phone->send_message("000010"); // sample text
         return 2;
     }
 
     int police_move_ai(const GameView &gameView) {
         // we can send message if we like
+        cout << "I am moving and sending a message as a police" << endl;
         my_phone->send_message("1101"); // sample text
         return 1;
     }
