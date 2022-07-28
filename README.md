@@ -38,12 +38,16 @@ sudo ldconfig # refresh shared library cache.
 - install grpc
 
 ```
-cd $INSTALL_DIR/grpc/third_party/protobuf
+cd ../..
 mkdir -p cmake/build
-cd cmake/build
-cmake ../..
-make
-sudo make install
+pushd cmake/build
+cmake -DgRPC_INSTALL=ON \
+  -DgRPC_BUILD_TESTS=OFF \
+  -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
+  ../..
+make 
+make install
+popd
 ```
 
 - test if you can compile an example
