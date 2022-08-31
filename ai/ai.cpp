@@ -1,5 +1,6 @@
 #include "ai.h"
 
+
 using namespace std;
 
 namespace AI {
@@ -26,6 +27,6 @@ namespace AI {
         // we can send message if we like
         cout << "I am moving and sending a message as a police" << endl;
         my_phone->send_message("1101"); // sample text
-        return 1;
+        return 2;
     }
 }
