@@ -56,8 +56,10 @@ namespace Client {
                     if(my_turn == gameView.turn().turnnumber())
                         continue;
                     bool both_theif  = gameView.turn().turntype() == TurnType::THIEF_TURN && gameView.viewer().type() == AgentType::THIEF;
+                    bool both_joker  = gameView.turn().turntype() == TurnType::THIEF_TURN && gameView.viewer().type() == AgentType::JOKER;
+                    bool both_batman  = gameView.turn().turntype() == TurnType::POLICE_TURN && gameView.viewer().type() == AgentType::BATMAN;
                     bool both_police = gameView.turn().turntype() == TurnType::POLICE_TURN && gameView.viewer().type() == AgentType::POLICE;
-                    if(!both_police && !both_theif)
+                    if(!both_police && !both_theif && !both_batman && !both_joker)
                         continue;
                     perform_move(gameView);
                     my_turn = gameView.turn().turnnumber();
@@ -105,9 +107,9 @@ namespace Client {
         void perform_initialize(const GameView &gameView) const {
             const auto &viewer = gameView.viewer();
             int start_node_id;
-            if (viewer.type() == AgentType::THIEF) {
+            if (viewer.type() == AgentType::THIEF || viewer.type() == AgentType::JOKER) {
                 start_node_id = AI::get_thief_starting_node(gameView);
-            } else {
+            }else {
                 start_node_id = 3; // todo dummy
             }
             DeclareReadiness(start_node_id);
@@ -117,7 +119,7 @@ namespace Client {
         void perform_move(const GameView &gameView) const {
             const auto &viewer = gameView.viewer();
             int to_node_id;
-            if (viewer.type() == AgentType::THIEF) {
+            if (viewer.type() == AgentType::THIEF || viewer.type() == AgentType::JOKER) {
                 to_node_id = AI::thief_move_ai(gameView);
             } else {
                 to_node_id = AI::police_move_ai(gameView);
